@@ -1,79 +1,236 @@
-# The Open Game Collective
+# The Open Game Collective 🎮
 
-The Open Game Collective is an organization that develops the Open Game System (OGS), a platform enabling seamless integration between games with shared authentication and cross-platform features.
+The Open Game Collective builds tools that empower developers to create cross-platform gaming experiences. Our Open Game System (OGS) bridges the gap between web and native capabilities, enabling developers to build once and reach players everywhere with features like push notifications 📱 and TV casting 📺 that typically require native app development.
 
 ## Core Components
 
-### Web Platform
-[opengame-org](https://github.com/open-game-collective/opengame-org) - Web component of OGS that enables browser-based games to integrate with the ecosystem, providing authentication and cross-platform capabilities.
+### Development Kits 🧰
 
-### Mobile App
-[opengame-app](https://github.com/open-game-collective/opengame-app) - Mobile component of OGS for iOS/Android that extends browser-based games with mobile capabilities like push notifications and Chromecast support.
+- [auth-kit](https://github.com/open-game-collective/auth-kit) - Implementation of the Account Linking Protocol 🔗 and Web Auth Token Protocol 🔐 that connects your game with the OGS platform. **Optional, but required if you want to implement push notifications.**
 
-### Development Kits
+- [notification-kit](https://github.com/open-game-collective/notification-kit) - Streamlined toolkit for implementing push notifications in web games. Handles device registration, notification delivery, and deep linking with minimal configuration. **Requires auth-kit for account linking.**
 
-- [auth-kit](https://github.com/open-game-collective/auth-kit) - Headless, isomorphic authentication toolkit for React applications with email verification and anonymous-first auth. **Required for OGS compatibility and account linking to enable push notifications.**
+- [cast-kit](https://github.com/open-game-collective/cast-kit) - Toolkit for adding TV casting capabilities to web games. Transforms phones into controllers and TVs into displays with a universal receiver application. **Completely independent and can be used without auth-kit or notification-kit.**
 
-### Example Implementations
+### Mobile App 📱
+[opengame-app](https://github.com/open-game-collective/opengame-app) - Mobile component of OGS for iOS/Android where users can discover, load, and play your web games. The app enables push notifications to reach users even when they're not actively playing and provides Chromecast support for TV gameplay.
+
+### Web Platform 🌐
+[opengame-org](https://github.com/open-game-collective/opengame-org) - Web component of OGS that enables browser-based games to integrate with the ecosystem, providing account linking and cross-platform capabilities.
+
+### Example Implementations ⭐
 
 - [trivia-jam](https://github.com/open-game-collective/trivia-jam) - Interactive trivia platform built as a reference implementation of the OGS specification. Host custom games, compete for prizes, and create question sets.
 
-## Open Game System (OGS) Specification v1
+## Open Game System (OGS) Specification v1 📋
 
 This section outlines requirements and guidelines for OGS v1 compatibility.
 
 ### Overview
 
-The Open Game System bridges browser-based games with mobile capabilities, enabling web games to leverage features typically limited to native apps. OGS provides a unified authentication system and cross-platform experience, allowing browser-based games to extend their reach through both web and mobile components.
+The Open Game System empowers web game developers to create truly cross-platform experiences. By bridging web, mobile and TV capabilities, OGS helps you:
 
-Our approach prioritizes user experience with clear, consistent implementation patterns. As the ecosystem matures, we'll evolve more flexible abstractions to make integration easier for a wider variety of games.
+1. **Reach Players Anywhere** 🌍 - Engage users across devices with a single codebase
+2. **Send Push Notifications** 🔔 - Keep players engaged even when they're not actively using your game
+3. **Enable TV Casting** 📺 - Transform phones into controllers and TVs into displays for immersive gameplay
+4. **Simplify Distribution** 🚀 - Bypass app store restrictions and reduce development costs
+
+OGS works by linking a player's account in your game with their account in the OGS platform, creating a seamless experience across devices while maintaining your game's independence.
+
+Our ecosystem includes specialized development kits that can be used independently or together based on your needs:
+- [auth-kit](https://github.com/open-game-collective/auth-kit) for authentication (required for push notifications)
+- [notification-kit](https://github.com/open-game-collective/notification-kit) for push notifications (requires auth-kit)
+- [cast-kit](https://github.com/open-game-collective/cast-kit) for TV casting (completely independent)
+
+You can implement just the features you need - for example, you could add TV casting without implementing authentication or notifications.
+
+Our approach prioritizes developer experience with clear, consistent implementation patterns. As the ecosystem matures, we'll evolve more flexible abstractions to make integration easier for a wider variety of games.
 
 ### Core Requirements
 
 #### 1. Authentication Integration
 
-All OGS-compatible games MUST implement the OGS Authentication Kit.
+Games that want to implement push notifications MUST implement the OGS Authentication Specification. **Chromecast support does NOT require authentication and can be implemented independently.**
 
-##### 1.1 Authentication Kit Integration
+##### 1.1 Authentication Specification
 
-- Games MUST use the `@open-game-collective/auth-kit` package
-- Games MUST implement Auth Kit as a **consumer** to enable push notifications
-- Games MUST support anonymous user creation as the first authentication step
-- Games MUST support email verification for account persistence
-- Games MUST handle token refresh and session management
-- Games MUST properly handle authentication state corruption and recovery
+The OGS Authentication Specification defines two core mechanisms that enable cross-platform features while preserving each game's authentication independence:
 
-Key features:
-- Anonymous-first authentication flow
-- Email verification
-- JWT-based tokens
-- Automatic token refresh
-- State recovery mechanisms
-- Cross-platform compatibility
-- Account linking for push notifications
+1. **Account Linking Protocol 🔗**: Connects a user's game account with their OGS platform account
+2. **Web Auth Token Protocol 🔐**: Enables seamless single sign-on between OGS and games once accounts are linked
 
-##### 1.2 Web Auth Code Handling
+**Important Distinction**: The OGS Authentication Specification is NOT about replacing your game's authentication system. Instead, it focuses on:
 
-Games MUST implement server-side middleware to accept web auth codes:
+1. **Linking** existing accounts across systems to enable cross-platform features
+2. **Enabling single sign-on** through auth tokens once accounts are linked
 
-```typescript
-// Example: Basic server-side middleware implementation
-import { withAuth } from "@open-game-collective/auth-kit/server";
+Games MUST maintain their own independent authentication and identity systems. The OGS platform simply provides a way to connect these systems together.
 
-export default {
-  async fetch(request: Request, env: Env) {
-    return withAuth(async (request, env, { userId, sessionId, sessionToken }) => {
-      // The user is now authenticated and you have their userId
-      const url = new URL(request.url);
-      // Your game API endpoints here
-    }, {
-      hooks: authHooks // Your auth hooks implementation
-    })(request, env);
-  }
-};
+###### 1.1.1 Account Linking Protocol 🔗
+
+The Account Linking Protocol 🔗 enables games to link their independent user accounts with the OGS platform, enabling cross-platform features like push notifications while maintaining authentication independence.
+
+**Protocol Overview:**
+
+1. Game server MUST request a link token from the OGS platform
+2. User MUST be redirected to the OGS platform's link account page with the link token
+3. User authenticates with the OGS platform and confirms the link
+4. OGS platform links the accounts and redirects back to the game
+5. Game server SHOULD verify the link status with the OGS platform
+
+**HTTP Sequence for Account Linking 🔄:**
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant GameClient as Game Client
+    participant GameServer as Game Server
+    participant OGSProvider as OGS Provider API
+    participant OGSWeb as OGS Web UI
+    
+    User->>GameClient: Initiates account linking
+    GameClient->>GameServer: Request link token
+    GameServer->>OGSProvider: POST /api/v1/auth/account-link-token
+    Note over GameServer,OGSProvider: Includes game credentials<br>and user identifier
+    OGSProvider->>OGSProvider: Validates request<br>Generates link token
+    OGSProvider-->>GameServer: Returns link token
+    GameServer-->>GameClient: Returns link token
+    GameClient->>OGSWeb: Redirects to link account page<br>with link token
+    Note over GameClient,OGSWeb: GET /link-account?token=xyz123
+    OGSWeb->>OGSProvider: Validates token
+    OGSWeb->>User: Displays authentication UI
+    User->>OGSWeb: Authenticates with OGS
+    OGSWeb->>User: Displays confirmation UI
+    User->>OGSWeb: Confirms account linking
+    OGSWeb->>OGSProvider: Processes account linking
+    OGSProvider->>OGSProvider: Links accounts
+    OGSWeb-->>GameClient: Redirects back to game<br>with success parameter
+    Note over OGSWeb,GameClient: Redirect to redirectUrl?success=true
+    GameClient->>GameServer: Verifies link success
+    GameServer->>OGSProvider: POST /api/v1/auth/verify-link-token
+    OGSProvider-->>GameServer: Confirms link status
+    GameServer-->>GameClient: Updates UI to show linked status
 ```
 
-**Web Auth Code Flow:**
+**Required API Endpoints 🛠️:**
+
+1. **Request Link Token** (Game Server → OGS Provider)
+   
+   Request:
+   ```http
+   POST /api/v1/auth/account-link-token HTTP/1.1
+   Host: api.opengame.org
+   Content-Type: application/json
+   Authorization: Bearer GAME_API_KEY
+   
+   {
+     "gameUserId": "user-123",
+     "redirectUrl": "https://yourgame.com/auth/callback"
+   }
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "linkToken": "xyz123",
+     "expiresAt": "2024-06-30T20:00:00Z",
+     "linkUrl": "https://opengame.org/link-account?token=xyz123"
+   }
+   ```
+
+2. **Verify Link Token** (Game Server → OGS Provider)
+   
+   Request:
+   ```http
+   POST /api/v1/auth/verify-link-token HTTP/1.1
+   Host: api.opengame.org
+   Content-Type: application/json
+   Authorization: Bearer GAME_API_KEY
+   
+   {
+     "token": "xyz123"
+   }
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "valid": true,
+     "userId": "ogs-user-456",
+     "email": "user@example.com",
+     "status": "linked",
+     "linkedAt": "2024-06-29T15:35:00Z"
+   }
+   ```
+
+**User-Facing Pages:**
+
+1. **Link Account Page** (User → OGS Web UI)
+   
+   URL: `https://opengame.org/link-account?token=xyz123`
+   
+   This page handles:
+   - Validating the link token
+   - Authenticating the user (login or signup)
+   - Displaying information about the game requesting the link
+   - Obtaining user consent for the link
+   - Processing the account linking
+   - Redirecting back to the game's callback URL
+
+**Error Responses ❌:**
+
+- **Invalid API Key**:
+  ```http
+  HTTP/1.1 401 Unauthorized
+  Content-Type: application/json
+  
+  {
+    "error": "invalid_api_key",
+    "message": "The provided API key is invalid or has been revoked"
+  }
+  ```
+
+- **Invalid Token**:
+  ```http
+  HTTP/1.1 400 Bad Request
+  Content-Type: application/json
+  
+  {
+    "error": "invalid_token",
+    "message": "The provided token is invalid or has expired"
+  }
+  ```
+
+- **User Not Found**:
+  ```http
+  HTTP/1.1 404 Not Found
+  Content-Type: application/json
+  
+  {
+    "error": "user_not_found",
+    "message": "The specified user could not be found"
+  }
+  ```
+
+###### 1.1.2 Web Auth Token Protocol 🔐
+
+The Web Auth Token Protocol 🔐 enables seamless single sign-on between the OGS platform and games, allowing users to access games through the OGS app without re-authenticating.
+
+**Protocol Overview:**
+
+1. OGS app requests a web auth code from the OGS platform
+2. OGS app opens the game in a WebView with the code as a parameter
+3. Game server verifies the code with the OGS platform
+4. OGS platform returns user information
+5. Game creates a session for the user
+
+**HTTP Sequence for Web Auth Token:**
 
 ```mermaid
 sequenceDiagram
@@ -81,276 +238,666 @@ sequenceDiagram
     participant OGSApp as OGS Mobile App
     participant GameWeb as Game Web Client
     participant GameServer as Game Server
+    participant OGSProvider as OGS Provider API
     
     User->>OGSApp: Opens game in app
-    OGSApp->>OGSApp: getWebAuthCode()
-    Note over OGSApp: Creates JWT with userId<br>(email included only if verified)
+    OGSApp->>OGSProvider: POST /api/v1/auth/web-code
+    Note over OGSApp,OGSProvider: Includes Authorization header<br>with session token
+    OGSProvider->>OGSProvider: Creates JWT with userId<br>(email included only if verified)
+    OGSProvider-->>OGSApp: Returns web auth code
     OGSApp->>GameWeb: Open WebView with URL?code=xyz123
     GameWeb->>GameServer: Request with code parameter
-    GameServer->>GameServer: withAuth middleware
-    Note over GameServer: 1. Detects code in URL<br>2. Verifies JWT<br>3. Extracts userId & email (if any)<br>4. Creates session
-    GameServer->>GameWeb: Set auth cookies & redirect
+    GameServer->>OGSProvider: POST /api/v1/auth/verify-token
+    Note over GameServer,OGSProvider: Sends token for verification
+    OGSProvider->>OGSProvider: Verifies token<br>Extracts user info
+    OGSProvider-->>GameServer: Returns user info
+    GameServer->>GameServer: Creates session for user
+    GameServer-->>GameWeb: Set auth cookies & redirect
     GameWeb->>GameServer: Subsequent requests with cookies
-    GameServer->>GameWeb: Return authenticated responses
+    GameServer-->>GameWeb: Return authenticated responses
     GameWeb->>User: Display authenticated game content
 ```
 
-**Key Implementation Details:**
+**Required API Endpoints 🛠️:**
 
-- Web auth code: Short-lived JWT (5 minutes) containing user ID
+1. **Generate Web Auth Code** (OGS App → OGS Provider)
+   
+   Request:
+   ```http
+   POST /api/v1/auth/web-code HTTP/1.1
+   Host: api.opengame.org
+   Content-Type: application/json
+   Authorization: Bearer SESSION_TOKEN
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "code": "xyz123",
+     "expiresIn": 300
+   }
+   ```
+
+2. **Verify Web Auth Token** (Game Server → OGS Provider)
+   
+   Request:
+   ```http
+   POST /api/v1/auth/verify-token HTTP/1.1
+   Host: api.opengame.org
+   Content-Type: application/json
+   Authorization: Bearer GAME_API_KEY
+   
+   {
+     "token": "xyz123"
+   }
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "valid": true,
+     "ogsUserId": "ogs-user-456",
+     "email": "user@example.com",  // Only included if verified
+     "isVerified": true
+   }
+   ```
+
+**Error Responses ❌:**
+
+- **Invalid Session Token**:
+  ```http
+  HTTP/1.1 401 Unauthorized
+  Content-Type: application/json
+  
+  {
+    "error": "invalid_session",
+    "message": "The provided session token is invalid or has expired"
+  }
+  ```
+
+- **Invalid Web Auth Token**:
+  ```http
+  HTTP/1.1 400 Bad Request
+  Content-Type: application/json
+  
+  {
+    "error": "invalid_token",
+    "message": "The provided token is invalid or has expired"
+  }
+  ```
+
+**Key Implementation Details 💡:**
+
+- Web auth token: Short-lived JWT (5 minutes) containing user ID
 - For verified users: JWT includes email address
 - For anonymous users: Only userId is included
-- Middleware verifies code using AUTH_SECRET environment variable
-- After verification: Creates session and refresh tokens as cookies
-- Your handler receives the authenticated userId for user data retrieval
-- Determine if a user is verified by checking if email property exists in JWT payload
+- After verification: Game creates its own session for the user
+- Games should determine if a user is verified by checking the `isVerified` field
+
+###### 1.1.3 Token Refresh Protocol 🔄
+
+The Token Refresh Protocol 🔄 enables games to refresh expired session tokens using a refresh token.
+
+**Protocol Overview:**
+
+1. Session token expires
+2. Game server requests a new session token using the refresh token
+3. OGS platform verifies the refresh token
+4. OGS platform returns a new session token
+
+**HTTP Sequence for Token Refresh:**
+
+```mermaid
+sequenceDiagram
+    participant GameClient as Game Client
+    participant GameServer as Game Server
+    participant OGSProvider as OGS Provider API
+    
+    GameClient->>GameServer: Request with expired session token
+    GameServer->>OGSProvider: POST /api/v1/auth/refresh
+    Note over GameServer,OGSProvider: Includes refresh token
+    OGSProvider->>OGSProvider: Verifies refresh token
+    OGSProvider-->>GameServer: Returns new session token
+    GameServer-->>GameClient: Sets new auth cookies
+    GameClient->>GameServer: Retry original request
+    GameServer-->>GameClient: Returns response
+```
+
+**Required API Endpoints 🛠️:**
+
+1. **Refresh Token** (Game Server → OGS Provider)
+   
+   Request:
+   ```http
+   POST /api/v1/auth/refresh HTTP/1.1
+   Host: api.opengame.org
+   Content-Type: application/json
+   Cookie: refresh=refresh-token
+   
+   {
+     "refreshToken": "refresh-token"
+   }
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "success": true,
+     "sessionToken": "new-jwt-token",
+     "expiresIn": 900
+   }
+   ```
+
+**Error Responses ❌:**
+
+- **Invalid Refresh Token**:
+  ```http
+  HTTP/1.1 401 Unauthorized
+  Content-Type: application/json
+  
+  {
+    "error": "invalid_refresh_token",
+    "message": "The provided refresh token is invalid or has expired"
+  }
+  ```
+
+##### 1.2 Implementation Considerations
+
+The OGS Authentication Specification is defined at the HTTP protocol level as detailed in the previous sections. This protocol specification is the source of truth for OGS compatibility.
+
+**Auth Kit for Implementation**
+
+For game developers, the `@open-game-collective/auth-kit` package provides a focused implementation of the Account Linking Protocol 🔗 and Web Auth Token Protocol 🔐. Auth Kit handles the specific HTTP endpoints needed for these protocols, making it significantly easier to integrate with the OGS platform.
+
+Auth Kit is available for the consumer (game) side and provides:
+
+- Implementation of Account Linking Protocol 🔗 endpoints
+- Implementation of Web Auth Token Protocol 🔐 endpoints
+- Secure token management
+- React integration for UI components
+- TypeScript support for type safety
+
+For complete documentation on Auth Kit, refer to the [auth-kit repository](https://github.com/open-game-collective/auth-kit).
+
+**Important:** Whether implementing the protocol directly or using Auth Kit, all implementations must adhere to the HTTP protocol specifications defined in this document to ensure compatibility with the OGS platform.
 
 ##### 1.3 User Identity
 
-- Games MUST respect and utilize the user ID provided by the Authentication Kit
+- Games MUST respect and utilize the user ID provided by the OGS platform when a user authenticates via web auth token
 - Games SHOULD maintain their own independent authentication and identity systems
-- Games MUST implement Auth Kit as a **consumer** to link their identity system with OGS
+- Games MUST implement the Account Linking Protocol 🔗 to link their identity system with OGS
 - Each game maintains its own user accounts while enabling cross-application features through account linking
 
-**Important Note:** The OGS authentication model follows a provider-consumer pattern where:
-- The OGS platform acts as the **provider** that manages central user accounts
-- Games act as **consumers** that maintain their own independent authentication systems
-- Account linking enables cross-application features (like push notifications) while preserving each game's authentication independence
+**Security Highlights:** 🔐
 
-#### 2. Platform Integration
+1. **JWT-Based Tokens** 🔑: Secure, short-lived tokens
+2. **API Key Authentication** 🛡️: Protected server communication
+3. **User Consent** ✅: Clear permission for all linking
+4. **Unlinking Option** ↩️: Users can disable features anytime
 
-Games MUST be accessible through the OGS platform.
+#### 2. Push Notifications
 
-##### 2.1 Integration Requirements
+Push notifications are an optional feature that games can implement to engage users even when they're not actively playing. **Implementing push notifications requires authentication integration.**
 
-- Games MUST function properly in WebView context
-- Games MUST be responsive across different screen sizes
-- Games MUST handle orientation changes
-- Games MUST support both touch and mouse/keyboard input
+##### 2.1 Notification Specification
 
-#### 3. Push Notifications
+The OGS Notification Specification defines how games can send push notifications to users through the OGS platform. Push notifications rely on the account linking established through Auth Kit, which enables the OGS platform to send notifications on behalf of your game.
 
-Games SHOULD support the OGS notification system.
+**Protocol Overview:**
 
-##### 3.1 Notification Integration
+1. Game server sends a notification request to the OGS platform
+2. OGS platform verifies the game's API key and the account link
+3. OGS platform delivers the notification to the user's device
+4. OGS platform returns the delivery status to the game server
+5. Game server can later check the notification status (delivered, read, etc.)
 
-- Games SHOULD use the `@open-game-collective/notification-kit` package
-- Games MUST implement Auth Kit as a **consumer** to enable push notifications
-- Games SHOULD associate notifications with the authenticated user ID
-- Games SHOULD respect user notification preferences
-
-**Important:** To enable push notifications, games must implement Auth Kit as a consumer application and link their independent user accounts with the OpenGame provider. This account linking allows the OpenGame app to send push notifications on behalf of your game while maintaining separate authentication systems.
-
-**Notification Kit Architecture:**
+**HTTP Sequence for Sending Notifications:**
 
 ```mermaid
 sequenceDiagram
     participant Game as Game Client
     participant GameServer as Game Server
-    participant OGSNotify as OGS Notification Service
+    participant OGSNotify as OGS Notification API
+    participant OGSApp as OGS Mobile App
     participant User as User Device
     
-    Game->>GameServer: Send notification request
-    GameServer->>GameServer: withNotifications middleware
-    Note over GameServer: Validates request<br>Adds game credentials
-    GameServer->>OGSNotify: Forward authenticated request
-    OGSNotify->>OGSNotify: Process notification
-    OGSNotify->>User: Deliver notification
-    OGSNotify-->>GameServer: Delivery status
-    GameServer-->>Game: Notification result
+    Game->>GameServer: Request to send notification
+    GameServer->>OGSNotify: POST /api/v1/notifications/send
+    Note over GameServer,OGSNotify: Includes game credentials,<br>recipient, and notification data
+    OGSNotify->>OGSNotify: Validates request<br>Verifies account linking
+    OGSNotify->>OGSApp: Forwards notification
+    OGSApp->>User: Displays notification
+    OGSNotify-->>GameServer: Returns delivery status
+    GameServer-->>Game: Updates UI with notification status
 ```
 
-**Server Integration:**
-```typescript
-// Example: Server-side middleware implementation
-import { withNotifications } from "@open-game-collective/notification-kit/server";
+**Required API Endpoints 🛠️:**
 
-export default {
-  async fetch(request: Request, env: Env) {
-    return withNotifications(async (request, env) => {
-      const url = new URL(request.url);
-      
-      if (url.pathname === '/api/send-notification') {
-        const data = await request.json();
-        return new Response(JSON.stringify({ success: true }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-      
-      // Other API endpoints
-    }, {
-      hooks: notificationHooks // Your notification hooks implementation
-    })(request, env);
+1. **Send Notification** (Game Server → OGS Notification API)
+   
+   Request:
+   ```http
+   POST /api/v1/notifications/send HTTP/1.1
+   Host: api.opengame.org
+   Content-Type: application/json
+   Authorization: Bearer GAME_API_KEY
+   
+   {
+     "recipient": {
+       "gameUserId": "user-123"
+     },
+     "notification": {
+       "type": "game_invitation",
+       "title": "New Invitation",
+       "body": "PlayerOne invited you to join Trivia Night!",
+       "data": {
+         "gameId": "trivia-456",
+         "inviterId": "user-789",
+         "inviterName": "PlayerOne",
+         "gameName": "Trivia Night",
+         "expiresAt": "2024-06-30T20:00:00Z"
+       },
+       "deepLink": "opengame://trivia-jam/join/trivia-456"
+     }
+   }
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "id": "notification-123",
+     "status": "delivered",
+     "deliveredAt": "2024-06-29T15:35:00Z"
+   }
+   ```
+
+2. **Get Notification Status** (Game Server → OGS Notification API)
+   
+   Request:
+   ```http
+   GET /api/v1/notifications/status/notification-123 HTTP/1.1
+   Host: api.opengame.org
+   Authorization: Bearer GAME_API_KEY
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "id": "notification-123",
+     "status": "read",
+     "deliveredAt": "2024-06-29T15:35:00Z",
+     "readAt": "2024-06-29T15:36:00Z"
+   }
+   ```
+
+3. **Register Device** (Game Client → OGS Notification API)
+   
+   Request:
+   ```http
+   POST /api/v1/notifications/register HTTP/1.1
+   Host: api.opengame.org
+   Content-Type: application/json
+   Authorization: Bearer SESSION_TOKEN
+   
+   {
+     "deviceToken": "device-token-from-fcm-or-apns",
+     "platform": "ios", // or "android", "web"
+     "topics": ["game_invitation", "turn_notification", "event_reminder"]
+   }
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "success": true,
+     "deviceId": "device-123"
+   }
+   ```
+
+4. **Unregister Device** (Game Client → OGS Notification API)
+   
+   Request:
+   ```http
+   POST /api/v1/notifications/unregister HTTP/1.1
+   Host: api.opengame.org
+   Content-Type: application/json
+   Authorization: Bearer SESSION_TOKEN
+   
+   {
+     "deviceToken": "device-token-from-fcm-or-apns"
+   }
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "success": true
+   }
+   ```
+
+**Error Responses ❌:**
+
+- **Invalid API Key**:
+  ```http
+  HTTP/1.1 401 Unauthorized
+  Content-Type: application/json
+  
+  {
+    "error": "invalid_api_key",
+    "message": "The provided API key is invalid or has been revoked"
   }
-};
-```
+  ```
 
-**Example Notification Payload:**
-```json
-{
-  "type": "game_invitation",
-  "recipient": "user-123",
-  "data": {
-    "gameId": "trivia-456",
-    "inviterId": "user-789",
-    "inviterName": "PlayerOne",
-    "gameName": "Trivia Night",
-    "expiresAt": "2024-06-30T20:00:00Z"
-  },
-  "message": "PlayerOne invited you to join Trivia Night!",
-  "deepLink": "opengame://trivia-jam/join/trivia-456"
-}
-```
-
-##### 3.2 Common Notification Scenarios
-
-- Game invitations (e.g., "Join my Trivia Jam game tonight!")
-- Turn-based game notifications (e.g., "It's your turn in Run Set Jimmy")
-- Game events (e.g., "The tournament starts in 30 minutes")
-- Achievements (e.g., "You've unlocked the 'Trivia Master' badge!")
-
-**Example Client Integration:**
-```javascript
-// Client-side notification registration
-import { useNotifications } from '@open-game-collective/notification-kit/client';
-
-function GameLobby() {
-  const { registerForNotifications, unregisterFromNotifications } = useNotifications();
+- **User Not Linked**:
+  ```http
+  HTTP/1.1 400 Bad Request
+  Content-Type: application/json
   
-  useEffect(() => {
-    // Register for notifications when component mounts
-    registerForNotifications(['invitation', 'turn', 'event']);
-    
-    // Unregister when component unmounts
-    return () => unregisterFromNotifications();
-  }, []);
-  
-  // Rest of component
-}
-```
+  {
+    "error": "user_not_linked",
+    "message": "The specified user has not linked their account with OpenGame"
+  }
+  ```
 
-#### 4. Chromecast Support
+- **Notification Not Found**:
+  ```http
+  HTTP/1.1 404 Not Found
+  Content-Type: application/json
+  
+  {
+    "error": "notification_not_found",
+    "message": "The specified notification could not be found"
+  }
+  ```
+
+**Key Implementation Details 💡:**
+
+- Notifications can only be sent to users who have linked their game account with OGS
+- The OGS platform handles device registration and token management
+- Games should include a deep link to allow users to navigate directly to relevant content
+- Notification types should be consistent across your game for better user experience
+- All notification endpoints follow the standardized API versioning pattern (`/api/v1/notifications/*`)
+
+##### 2.2 Implementation with Notification Kit 📲
+
+The OGS Notification Specification is defined at the HTTP protocol level as detailed in the previous section. This protocol specification is the source of truth for OGS compatibility.
+
+**Notification Kit for Implementation**
+
+For game developers, the `@open-game-collective/notification-kit` package provides a ready-made implementation of the OGS Notification Specification. Notification Kit handles all the required HTTP endpoints and notification flows, making it significantly easier to integrate with the OGS platform.
+
+Notification Kit is available for the consumer (game) side and provides:
+
+- Complete implementation of all required HTTP endpoints
+- Device registration and token management
+- Notification delivery and status tracking
+- Deep linking support
+
+For complete documentation on Notification Kit, refer to the [notification-kit repository](https://github.com/open-game-collective/notification-kit).
+
+**Important:** Whether implementing the protocol directly or using Notification Kit, all implementations MUST adhere to the HTTP protocol specifications defined in this document to ensure compatibility with the OGS platform.
+
+**Important:** To enable push notifications, games must implement the Account Linking Protocol 🔗 to link their independent user accounts with the OGS platform. This account linking allows the OGS app to send push notifications on behalf of your game while maintaining separate authentication systems.
+
+#### 3. Chromecast Support 📺
 
 Games SHOULD implement Chromecast support to enable gameplay on larger screens.
 
-**Important:** Chromecast support does NOT require Auth Kit implementation.
+**Important:** Chromecast support is completely independent and does NOT require Auth Kit or Notification Kit implementation. You can implement casting as a standalone feature.
 
-##### 4.1 Cast Integration Architecture
+##### 3.1 Cast Specification 🎮
 
-OGS uses a custom Chromecast implementation with WebRTC for peer connections:
+The OGS Cast Specification defines how games can enable casting to larger screens through the OGS platform. Cast Kit follows the same architectural patterns as Auth Kit and Notification Kit, but can be used independently without requiring account linking.
 
-- Games SHOULD use the `@open-game-collective/cast-kit` package
-- Games SHOULD handle cast state changes (connecting, connected, disconnected)
-- Games SHOULD provide appropriate UI indicators when casting is active
+**Protocol Overview:**
 
-**Note:** Games do NOT need to implement their own Chromecast receiver application. OGS provides a universal receiver application.
+1. Game server creates a cast session with the OGS platform
+2. OGS platform initializes the receiver application on the Chromecast device
+3. Game client switches to controller mode
+4. Game client sends input events to the OGS platform
+5. OGS platform forwards input events to the receiver application
+6. When finished, game client ends the cast session
 
-**Cast Kit Architecture:**
+**HTTP Sequence for Casting:**
 
 ```mermaid
 sequenceDiagram
-    participant User as User
+    participant User
     participant Game as Game Client
     participant GameServer as Game Server
-    participant OGSCast as OGS Cast Service
-    participant CFWorker as Cloudflare Worker
+    participant OGSCast as OGS Cast API
+    participant OGSReceiver as OGS Receiver App
     participant TV as Chromecast Device
     
     User->>Game: Initiates cast
     Game->>GameServer: Request cast session
-    GameServer->>GameServer: withCast middleware
-    Note over GameServer: Validates request<br>Adds game credentials
-    GameServer->>OGSCast: Create cast session
-    OGSCast->>CFWorker: Spin up rendering instance
-    CFWorker->>TV: Establish WebRTC connection
-    OGSCast-->>GameServer: Session details
-    GameServer-->>Game: Cast session established
-    Game->>Game: Switch to controller mode
-    User->>Game: Controller inputs
-    Game->>OGSCast: Send control messages
-    OGSCast->>CFWorker: Forward controls
-    CFWorker->>CFWorker: Update game state
-    CFWorker->>TV: Stream updated content
+    GameServer->>OGSCast: POST /api/v1/cast/session
+    Note over GameServer,OGSCast: Includes game credentials<br>and session parameters
+    OGSCast->>OGSCast: Validates request<br>Creates cast session
+    OGSCast->>OGSReceiver: Initializes receiver app
+    OGSReceiver->>TV: Loads on Chromecast
+    OGSCast-->>GameServer: Returns session details
+    GameServer-->>Game: Returns cast session ID
+    Game->>Game: Switches to controller mode
+    
+    Note over User,TV: Gameplay Loop
+    
+    User->>Game: Controller input
+    Game->>OGSCast: POST /api/v1/cast/input
+    OGSCast->>OGSReceiver: Forwards input
+    OGSReceiver->>OGSReceiver: Updates game state
+    OGSReceiver->>TV: Renders updated state
+    
+    Note over User,TV: Session Management
+    
+    User->>Game: End cast session
+    Game->>OGSCast: DELETE /api/v1/cast/session/{sessionId}
+    OGSCast->>OGSReceiver: Terminates session
+    OGSReceiver->>TV: Unloads from Chromecast
+    OGSCast-->>Game: Confirms session ended
+    Game->>Game: Returns to normal mode
 ```
 
-**Server Integration:**
-```typescript
-// Example: Server-side middleware implementation
-import { withCast } from "@open-game-collective/cast-kit/server";
+**Required API Endpoints 🛠️:**
 
-export default {
-  async fetch(request: Request, env: Env) {
-    return withCast(async (request, env) => {
-      const url = new URL(request.url);
-      
-      if (url.pathname === '/api/cast/session') {
-        const data = await request.json();
-        return new Response(JSON.stringify({ 
-          sessionId: 'cast-session-123',
-          status: 'created'
-        }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
-      }
-      
-      // Other API endpoints
-    }, {
-      hooks: castHooks // Your cast hooks implementation
-    })(request, env);
+1. **Create Cast Session** (Game Server → OGS Cast API)
+   
+   Request:
+   ```http
+   POST /api/v1/cast/session HTTP/1.1
+   Host: api.opengame.org
+   Content-Type: application/json
+   Authorization: Bearer GAME_API_KEY
+   
+   {
+     "gameId": "your-game-id",
+     "gameUrl": "https://yourgame.com/play?mode=cast",
+     "sessionData": {
+       "gameState": "initial",
+       "players": ["player1", "player2"]
+     }
+   }
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "sessionId": "cast-session-123",
+     "receiverUrl": "https://receiver.opengame.org/cast?session=cast-session-123",
+     "status": "created"
+   }
+   ```
+
+2. **Send Input to Cast Session** (Game Client → OGS Cast API)
+   
+   Request:
+   ```http
+   POST /api/v1/cast/input HTTP/1.1
+   Host: api.opengame.org
+   Content-Type: application/json
+   Authorization: Bearer SESSION_TOKEN
+   
+   {
+     "sessionId": "cast-session-123",
+     "inputType": "action",
+     "inputData": {
+       "action": "jump",
+       "parameters": {
+         "height": 2,
+         "direction": "forward"
+       }
+     }
+   }
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "status": "delivered",
+     "timestamp": "2024-06-29T15:40:00Z"
+   }
+   ```
+
+3. **Get Cast Session Status** (Game Client → OGS Cast API)
+   
+   Request:
+   ```http
+   GET /api/v1/cast/session/cast-session-123 HTTP/1.1
+   Host: api.opengame.org
+   Authorization: Bearer SESSION_TOKEN
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "sessionId": "cast-session-123",
+     "status": "active",
+     "createdAt": "2024-06-29T15:30:00Z",
+     "lastActivityAt": "2024-06-29T15:35:00Z"
+   }
+   ```
+
+4. **End Cast Session** (Game Client → OGS Cast API)
+   
+   Request:
+   ```http
+   DELETE /api/v1/cast/session/cast-session-123 HTTP/1.1
+   Host: api.opengame.org
+   Authorization: Bearer SESSION_TOKEN
+   ```
+   
+   Response:
+   ```http
+   HTTP/1.1 200 OK
+   Content-Type: application/json
+   
+   {
+     "status": "terminated",
+     "sessionId": "cast-session-123"
+   }
+   ```
+
+**Error Responses ❌:**
+
+- **Invalid API Key**:
+  ```http
+  HTTP/1.1 401 Unauthorized
+  Content-Type: application/json
+  
+  {
+    "error": "invalid_api_key",
+    "message": "The provided API key is invalid or has been revoked"
   }
-};
-```
+  ```
 
-**Client Integration:**
-```javascript
-// Client-side cast integration
-import { useCast } from '@open-game-collective/cast-kit/client';
-
-function GameScreen() {
-  const { 
-    isCastAvailable, 
-    isCasting, 
-    startCasting, 
-    stopCasting, 
-    sendControlMessage 
-  } = useCast();
+- **Session Not Found**:
+  ```http
+  HTTP/1.1 404 Not Found
+  Content-Type: application/json
   
-  if (!isCastAvailable) return null;
+  {
+    "error": "session_not_found",
+    "message": "The specified cast session could not be found"
+  }
+  ```
+
+- **Invalid Input Format**:
+  ```http
+  HTTP/1.1 400 Bad Request
+  Content-Type: application/json
   
-  return (
-    <div>
-      {isCasting ? (
-        <div className="controller-ui">
-          <button onClick={() => sendControlMessage({ type: 'action', action: 'jump' })}>
-            Jump
-          </button>
-          <button onClick={stopCasting}>
-            Stop Casting
-          </button>
-        </div>
-      ) : (
-        <div className="game-ui">
-          <button onClick={startCasting}>
-            Cast to TV
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-```
+  {
+    "error": "invalid_input",
+    "message": "The provided input data is invalid or malformed"
+  }
+  ```
 
-### Optional Features
+**Key Implementation Details 💡:**
 
-#### 5. Wallet Integration
+- Games do NOT need to implement their own Chromecast receiver application
+- OGS provides a universal receiver application that can render your game content
+- The game client switches to controller mode when casting is active
+- Input events are forwarded from the controller to the receiver in real-time
+- Games should provide appropriate UI indicators when casting is active
+- All cast endpoints follow the standardized API versioning pattern (`/api/v1/cast/*`)
 
-**Note:** Wallet integration will be defined in a future OGS specification.
+##### 3.2 Implementation with Cast Kit 🎲
 
-### Certification Process
+The OGS Cast Specification is defined at the HTTP protocol level as detailed in the previous section. This protocol specification is the source of truth for OGS compatibility.
+
+**Cast Kit for Implementation**
+
+For game developers, the `@open-game-collective/cast-kit` package provides a ready-made implementation of the OGS Cast Specification. Cast Kit handles all the required HTTP endpoints and casting flows, making it significantly easier to integrate with the OGS platform.
+
+Cast Kit is available for the consumer (game) side and provides:
+
+- Complete implementation of all required HTTP endpoints
+- Cast session management
+- Input event handling
+- Controller mode UI components
+
+For complete documentation on Cast Kit, refer to the [cast-kit repository](https://github.com/open-game-collective/cast-kit).
+
+**Important:** Whether implementing the protocol directly or using Cast Kit, all implementations MUST adhere to the HTTP protocol specifications defined in this document to ensure compatibility with the OGS platform.
+
+**Note:** Games do NOT need to implement their own Chromecast receiver application. OGS provides a universal receiver application.
+
+
+### Certification Process ✅
 
 To certify your game as OGS-compatible:
 
-#### 1. Domain Verification
+#### 1. Domain Verification 🔒
 
 Create a `.well-known/opengame-association.json` file at your domain root:
 
@@ -360,38 +907,41 @@ Create a `.well-known/opengame-association.json` file at your domain root:
   "name": "Your Game Name",
   "version": "1.0.0",
   "contact": "developer@yourgame.com",
-  "features": ["authentication", "push-notifications", "chromecast"],
+  "features": ["authentication", "notifications", "chromecast"],
+  "apiVersion": "v1",
   "verification": "VERIFICATION_TOKEN"
 }
 ```
 
-The `VERIFICATION_TOKEN` will be provided during certification.
+The `VERIFICATION_TOKEN` will be provided during certification. Include only the features you've implemented in the `features` array. The `apiVersion` field should match the version of the OGS API you're implementing (currently "v1").
 
-#### 2. Trigger Verification
+#### 2. Trigger Verification 🔄
 
 After creating the `.well-known` file, trigger the verification process by making a request to:
 
 ```
-https://opengame.org/api/verify?host=your-game-domain.com
+https://opengame.org/api/v1/verify?host=your-game-domain.com
 ```
 
 **Note:** This endpoint is rate-limited to prevent abuse. Please avoid making multiple requests in quick succession.
 
-#### 3. API Key Generation
+#### 3. API Key Generation 🔑
 
 After successful domain verification, our automated system will send your API key to the contact email provided in the `.well-known` file:
 - Keys are specific to each game and environment
 - Store securely, never expose in client-side code
+- Use the API key for server-to-server communication with the OGS platform
 
-### Version History
 
-- v1.0.0 - Initial specification with core authentication, push notification, and Chromecast requirements
+### Version History 📝
 
-## Contact
+- v1.0.0 (March 2025) - Initial OGS specification release with authentication, push notifications, and Chromecast support 🚀
+
+## Contact 📬
 
 - Website: [https://opengame.org](https://opengame.org)
 - Email: [hello@opengame.org](mailto:hello@opengame.org)
 
-## License
+## License ⚖️
 
 This specification is licensed under the MIT License.
