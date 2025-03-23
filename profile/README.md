@@ -6,6 +6,8 @@ The Open Game Collective builds tools that empower developers to create cross-pl
 
 [![Website](https://img.shields.io/badge/website-opengame.org-blue)](https://opengame.org)
 [![Email](https://img.shields.io/badge/email-hello%40opengame.org-blue)](mailto:hello@opengame.org)
+[![Twitter](https://img.shields.io/badge/X/Twitter-@OpenGameCo-blue)](https://x.com/OpenGameCo)
+[![Discord](https://img.shields.io/badge/Discord-Join%20Us-7289DA)](https://discord.gg/n8TWakM7k8)
 
 ## What is the Open Game System?
 
